@@ -1,50 +1,31 @@
 services:
-  # MongoDB instance shared for local development
-  mongodb:
-    image: mongo:7
-    container_name: unilib-mongodb
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongo-data:/data/db
-
   user-service:
     build: ./services/user-service
     container_name: unilib-user-service
     ports:
       - "3001:3001"
-    environment:
-      PORT: 3001
-      MONGO_URI: mongodb://mongodb:27017/unilib-users
-      JWT_SECRET: unilib_dev_secret_key
-    depends_on:
-      - mongodb
+    env_file:
+      - ./services/user-service/.env
 
   book-catalog-service:
     build: ./services/book-catalog-service
     container_name: unilib-book-catalog-service
     ports:
       - "3002:3002"
-    environment:
-      PORT: 3002
-      MONGO_URI: mongodb+srv://movindusenuraaluthge:200205002121Senu@sliit.9pnop.mongodb.net/UniLibLoan-books?appName=SLIIT
-      JWT_SECRET: Senu2002
-    depends_on:
-      - mongodb
+    env_file:
+      - ./services/book-catalog-service/.env
 
   loan-service:
     build: ./services/loan-service
     container_name: unilib-loan-service
     ports:
       - "3003:3003"
+    env_file:
+      - ./services/loan-service/.env
     environment:
-      PORT: 3003
-      MONGO_URI: mongodb://mongodb:27017/unilib-loans
-      JWT_SECRET: unilib_dev_secret_key
       BOOK_SERVICE_URL: http://book-catalog-service:3002
       NOTIFICATION_SERVICE_URL: http://notification-service:3004
     depends_on:
-      - mongodb
       - book-catalog-service
       - notification-service
 
@@ -53,14 +34,11 @@ services:
     container_name: unilib-notification-service
     ports:
       - "3004:3004"
+    env_file:
+      - ./services/notification-service/.env
     environment:
-      PORT: 3004
-      MONGO_URI: mongodb://mongodb:27017/unilib-notifications
-      JWT_SECRET: unilib_dev_secret_key
       LOAN_SERVICE_URL: http://loan-service:3003
       USER_SERVICE_URL: http://user-service:3001
-    depends_on:
-      - mongodb
 
   frontend:
     build: ./frontend
@@ -72,6 +50,3 @@ services:
       - book-catalog-service
       - loan-service
       - notification-service
-
-volumes:
-  mongo-data:
