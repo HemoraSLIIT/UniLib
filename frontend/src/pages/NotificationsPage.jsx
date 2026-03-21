@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
-import { getUserNotifications, markAsRead } from '../services/api.js';
+import { getUserNotifications, markAsRead, markAllAsRead, deleteNotification } from '../services/api.js';
+import { useSocket } from '../context/SocketContext.jsx';
 
 function NotificationsPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
+  const socket = useSocket();
 
   useEffect(() => {
     if (!user) {
@@ -17,6 +19,17 @@ function NotificationsPage() {
 
     fetchNotifications();
   }, [user, navigate]);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleNew = (notification) => {
+      setNotifications((current) => [notification, ...current]);
+    };
+
+    socket.on('new-notification', handleNew);
+    return () => socket.off('new-notification', handleNew);
+  }, [socket]);
 
   const fetchNotifications = async () => {
     setLoading(true);
@@ -44,6 +57,28 @@ function NotificationsPage() {
     }
   };
 
+  const handleMarkAllAsRead = async () => {
+    try {
+      await markAllAsRead();
+      setNotifications((current) =>
+        current.map((notification) => ({ ...notification, read: true }))
+      );
+    } catch (err) {
+      console.error('Failed to mark all as read:', err);
+    }
+  };
+
+  const handleDelete = async (notificationId) => {
+    try {
+      await deleteNotification(notificationId);
+      setNotifications((current) =>
+        current.filter((notification) => notification._id !== notificationId)
+      );
+    } catch (err) {
+      console.error('Failed to delete notification:', err);
+    }
+  };
+
   const badgeClass = (type) => {
     if (type === 'reminder') return 'bg-[#f7f3ea] text-[#7c5b25]';
     if (type === 'overdue') return 'bg-[#fff1eb] text-[#9a3412]';
@@ -63,12 +98,23 @@ function NotificationsPage() {
 
   return (
     <section className="page-shell">
-      <div>
-        <p className="page-eyebrow">Inbox</p>
-        <h1 className="title-serif mt-3 text-4xl font-semibold text-[#203245]">Notifications</h1>
-        <p className="mt-3 max-w-2xl text-[#6b7280]">
-          Stay on top of borrow confirmations, returns, reminders, and overdue alerts.
-        </p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <p className="page-eyebrow">Inbox</p>
+          <h1 className="title-serif mt-3 text-4xl font-semibold text-[#203245]">Notifications</h1>
+          <p className="mt-3 max-w-2xl text-[#6b7280]">
+            Stay on top of borrow confirmations, returns, reminders, and overdue alerts.
+          </p>
+        </div>
+        {notifications.some((n) => !n.read) && (
+          <button
+            type="button"
+            onClick={handleMarkAllAsRead}
+            className="button-secondary self-start px-4 py-2 text-sm"
+          >
+            Mark All as Read
+          </button>
+        )}
       </div>
 
       {notifications.length === 0 ? (
@@ -95,15 +141,24 @@ function NotificationsPage() {
                 <p className="text-sm text-[#6b7280]">{formatTime(notification.createdAt)}</p>
               </div>
 
-              {!notification.read && (
+              <div className="flex items-center gap-2">
+                {!notification.read && (
+                  <button
+                    type="button"
+                    onClick={() => handleMarkAsRead(notification._id)}
+                    className="button-primary px-4 py-3 text-sm"
+                  >
+                    Mark as Read
+                  </button>
+                )}
                 <button
                   type="button"
-                  onClick={() => handleMarkAsRead(notification._id)}
-                  className="button-primary px-4 py-3 text-sm"
+                  onClick={() => handleDelete(notification._id)}
+                  className="rounded-xl border border-red-200 bg-white px-4 py-3 text-sm text-red-600 transition-colors hover:bg-red-50"
                 >
-                  Mark as Read
+                  Delete
                 </button>
-              )}
+              </div>
             </article>
           ))}
         </div>

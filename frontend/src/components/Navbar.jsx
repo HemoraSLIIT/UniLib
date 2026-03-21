@@ -1,5 +1,8 @@
+import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
+import { getUnreadCount } from '../services/api.js';
+import { useSocket } from '../context/SocketContext.jsx';
 
 const navLinkClass = (active) =>
   [
@@ -14,6 +17,36 @@ function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
   const canManageBooks = user?.role === 'staff' || user?.role === 'admin';
+  const [unreadCount, setUnreadCount] = useState(0);
+  const socket = useSocket();
+
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchUnread = async () => {
+      try {
+        const data = await getUnreadCount();
+        setUnreadCount(data.unreadCount || 0);
+      } catch {
+        setUnreadCount(0);
+      }
+    };
+
+    fetchUnread();
+    const interval = setInterval(fetchUnread, 30000);
+    return () => clearInterval(interval);
+  }, [user, location.pathname]);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleNew = () => {
+      setUnreadCount((c) => c + 1);
+    };
+
+    socket.on('new-notification', handleNew);
+    return () => socket.off('new-notification', handleNew);
+  }, [socket]);
 
   const handleLogout = () => {
     logout();
@@ -22,7 +55,7 @@ function Navbar() {
 
   return (
     <header className="sticky top-0 z-20 border-b border-[#dfd9cf] bg-[#faf9f6]/95 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
+      <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
         <div className="flex items-center gap-3">
           <Link to="/" className="flex items-center gap-2">
             {/* <span className="grid h-11 w-11 place-items-center rounded-2xl bg-[#173b63] text-sm font-semibold tracking-[0.2em] text-white">
@@ -42,7 +75,7 @@ function Navbar() {
           </Link>
         </div>
 
-        <nav className="flex flex-wrap items-center gap-2 lg:justify-end">
+        <nav className="flex flex-nowrap items-center gap-1 lg:justify-end">
           <Link to="/" className={navLinkClass(location.pathname === '/')}>
             Home
           </Link>
@@ -54,9 +87,14 @@ function Navbar() {
           {user && (
             <Link
               to="/notifications"
-              className={navLinkClass(location.pathname === '/notifications')}
+              className={`${navLinkClass(location.pathname === '/notifications')} relative`}
             >
               Notifications
+              {unreadCount > 0 && (
+                <span className="absolute -right-2 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-xs font-bold text-white">
+                  {unreadCount}
+                </span>
+              )}
             </Link>
           )}
           {user && (
@@ -70,6 +108,14 @@ function Navbar() {
               className={navLinkClass(location.pathname === '/manage-books')}
             >
               Manage Books
+            </Link>
+          )}
+          {canManageBooks && (
+            <Link
+              to="/manage-returns"
+              className={navLinkClass(location.pathname === '/manage-returns')}
+            >
+              Manage Returns
             </Link>
           )}
           {user ? (

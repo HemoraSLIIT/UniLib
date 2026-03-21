@@ -33,6 +33,11 @@ export const register = async (name, email, password, role) => {
   return response.data;
 };
 
+export const getUserById = async (userId) => {
+  const response = await createRequest('users').get(`/users/${userId}`);
+  return response.data;
+};
+
 export const getProfile = async () => {
   const response = await createRequest('users').get('/users/profile', {
     headers: getAuthHeaders(),
@@ -163,6 +168,13 @@ export const returnBook = async (loanId) => {
   return response.data;
 };
 
+export const getActiveLoans = async () => {
+  const response = await createRequest('loans').get('/loans/active', {
+    headers: getAuthHeaders(),
+  });
+  return response.data;
+};
+
 export const getUserLoans = async () => {
   const user = JSON.parse(localStorage.getItem('user') || 'null');
   if (!user?.id) {
@@ -194,6 +206,37 @@ export const markAsRead = async (notificationId) => {
     {
       headers: getAuthHeaders(),
     }
+  );
+  return response.data;
+};
+
+export const markAllAsRead = async () => {
+  const user = JSON.parse(localStorage.getItem('user') || 'null');
+  if (!user?.id) throw new Error('Missing user id');
+
+  const response = await createRequest('notifications').patch(
+    `/notifications/user/${user.id}/read-all`,
+    {},
+    { headers: getAuthHeaders() }
+  );
+  return response.data;
+};
+
+export const deleteNotification = async (notificationId) => {
+  const response = await createRequest('notifications').delete(
+    `/notifications/${notificationId}`,
+    { headers: getAuthHeaders() }
+  );
+  return response.data;
+};
+
+export const getUnreadCount = async () => {
+  const user = JSON.parse(localStorage.getItem('user') || 'null');
+  if (!user?.id) throw new Error('Missing user id');
+
+  const response = await createRequest('notifications').get(
+    `/notifications/user/${user.id}/unread-count`,
+    { headers: getAuthHeaders() }
   );
   return response.data;
 };
