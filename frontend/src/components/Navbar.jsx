@@ -55,7 +55,7 @@ function Navbar() {
 
   return (
     <header className="sticky top-0 z-20 border-b border-[#dfd9cf] bg-[#faf9f6]/95 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
+      <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
         <div className="flex items-center gap-3">
           <Link to="/" className="flex items-center gap-2">
             {/* <span className="grid h-11 w-11 place-items-center rounded-2xl bg-[#173b63] text-sm font-semibold tracking-[0.2em] text-white">
@@ -75,7 +75,7 @@ function Navbar() {
           </Link>
         </div>
 
-        <nav className="flex flex-wrap items-center gap-2 lg:justify-end">
+        <nav className="flex flex-nowrap items-center gap-1 lg:justify-end">
           <Link to="/" className={navLinkClass(location.pathname === '/')}>
             Home
           </Link>
@@ -108,6 +108,14 @@ function Navbar() {
               className={navLinkClass(location.pathname === '/manage-books')}
             >
               Manage Books
+            </Link>
+          )}
+          {canManageBooks && (
+            <Link
+              to="/manage-returns"
+              className={navLinkClass(location.pathname === '/manage-returns')}
+            >
+              Manage Returns
             </Link>
           )}
           {user ? (

@@ -6,6 +6,7 @@ import BookDetailPage from './pages/BookDetailPage.jsx';
 import HomePage from './pages/HomePage.jsx';
 import LoginPage from './pages/LoginPage.jsx';
 import ManageBooksPage from './pages/ManageBooksPage.jsx';
+import ManageReturnsPage from './pages/ManageReturnsPage.jsx';
 import MyLoansPage from './pages/MyLoansPage.jsx';
 import NotificationsPage from './pages/NotificationsPage.jsx';
 import ProfilePage from './pages/ProfilePage.jsx';
@@ -29,6 +30,7 @@ function App() {
               <Route path="/notifications" element={<NotificationsPage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/manage-books" element={<ManageBooksPage />} />
+              <Route path="/manage-returns" element={<ManageReturnsPage />} />
             </Routes>
           </main>
         </div>

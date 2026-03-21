@@ -1,15 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
-import { getUserLoans, returnBook } from '../services/api.js';
+import { getUserLoans } from '../services/api.js';
 
 function MyLoansPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [loans, setLoans] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [message, setMessage] = useState('');
-  const [error, setError] = useState('');
 
   useEffect(() => {
     if (!user) {
@@ -30,19 +28,6 @@ function MyLoansPage() {
       setLoans([]);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleReturn = async (loanId) => {
-    setMessage('');
-    setError('');
-
-    try {
-      await returnBook(loanId);
-      setMessage('Book returned successfully!');
-      await fetchLoans();
-    } catch (err) {
-      setError(err.response?.data?.message || 'Failed to return book. Please try again.');
     }
   };
 
@@ -68,21 +53,9 @@ function MyLoansPage() {
         <p className="page-eyebrow">Loan history</p>
         <h1 className="title-serif mt-3 text-4xl font-semibold text-[#203245]">My Loans</h1>
         <p className="mt-3 max-w-2xl text-[#6b7280]">
-          Review active loans, check due dates, and return books once you are done.
+          Review your active loans and check due dates.
         </p>
       </div>
-
-      {message && (
-        <div className="notice-success">
-          {message}
-        </div>
-      )}
-
-      {error && (
-        <div className="notice-error">
-          {error}
-        </div>
-      )}
 
       {loans.length === 0 ? (
         <div className="surface-card-soft border-dashed p-10 text-center text-[#5f6f81]">
@@ -98,7 +71,6 @@ function MyLoansPage() {
                   <th className="px-6 py-4">Borrow Date</th>
                   <th className="px-6 py-4">Due Date</th>
                   <th className="px-6 py-4">Status</th>
-                  <th className="px-6 py-4">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#ece8e0] text-sm text-[#203245]">
@@ -111,19 +83,6 @@ function MyLoansPage() {
                       <span className={`rounded-full px-3 py-1 text-xs font-medium uppercase ${statusClass(loan.status)}`}>
                         {loan.status}
                       </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      {loan.status === 'borrowed' || loan.status === 'overdue' ? (
-                        <button
-                          type="button"
-                          onClick={() => handleReturn(loan._id)}
-                          className="button-primary rounded-md px-4 py-2 text-sm"
-                        >
-                          Return
-                        </button>
-                      ) : (
-                        <span className="text-[#9aa3af]">-</span>
-                      )}
                     </td>
                   </tr>
                 ))}

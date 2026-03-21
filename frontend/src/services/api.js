@@ -33,6 +33,11 @@ export const register = async (name, email, password, role) => {
   return response.data;
 };
 
+export const getUserById = async (userId) => {
+  const response = await createRequest('users').get(`/users/${userId}`);
+  return response.data;
+};
+
 export const getProfile = async () => {
   const response = await createRequest('users').get('/users/profile', {
     headers: getAuthHeaders(),
@@ -160,6 +165,13 @@ export const returnBook = async (loanId) => {
       headers: getAuthHeaders(),
     }
   );
+  return response.data;
+};
+
+export const getActiveLoans = async () => {
+  const response = await createRequest('loans').get('/loans/active', {
+    headers: getAuthHeaders(),
+  });
   return response.data;
 };
 

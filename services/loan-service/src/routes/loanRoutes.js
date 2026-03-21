@@ -97,9 +97,30 @@ router.post(
   }
 );
 
-// POST /return/:loanId - Return a book (protected)
+// GET /active - Get all active (borrowed/overdue) loans (admin/staff only)
+router.get("/active", auth, async (req, res) => {
+  try {
+    if (req.user.role !== "admin" && req.user.role !== "staff") {
+      return res.status(403).json({ message: "Access denied. Admin or staff only." });
+    }
+
+    const activeLoans = await Loan.find({
+      status: { $in: ["borrowed", "overdue"] },
+    }).sort({ dueDate: 1 });
+
+    res.json(activeLoans);
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+});
+
+// POST /return/:loanId - Return a book (admin/staff only)
 router.post("/return/:loanId", auth, async (req, res) => {
   try {
+    if (req.user.role !== "admin" && req.user.role !== "staff") {
+      return res.status(403).json({ message: "Access denied. Only admin or staff can process returns." });
+    }
+
     const loan = await Loan.findById(req.params.loanId);
 
     if (!loan) {
