@@ -22,6 +22,9 @@ const notificationSchema = new mongoose.Schema({
   bookTitle: {
     type: String,
   },
+  loanId: {
+    type: String,
+  },
   read: {
     type: Boolean,
     default: false,

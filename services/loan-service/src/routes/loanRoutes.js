@@ -82,6 +82,7 @@ router.post(
           userId,
           type: "borrow_confirmation",
           message: `You have successfully borrowed "${book.title}". Due date: ${dueDate.toDateString()}`,
+          bookTitle: book.title,
           loanId: savedLoan._id,
         });
       } catch (error) {
@@ -132,6 +133,7 @@ router.post("/return/:loanId", auth, async (req, res) => {
         userId: loan.userId,
         type: "return_confirmation",
         message: `You have successfully returned "${loan.bookTitle}".`,
+        bookTitle: loan.bookTitle,
         loanId: loan._id,
       });
     } catch (error) {
@@ -149,6 +151,24 @@ router.get("/user/:userId", auth, async (req, res) => {
   try {
     const loans = await Loan.find({ userId: req.params.userId }).sort({ createdAt: -1 });
     res.json(loans);
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+});
+
+// GET /due-soon - Get loans due within 2 days (for notification service, no auth)
+router.get("/due-soon", async (req, res) => {
+  try {
+    const now = new Date();
+    const twoDaysLater = new Date();
+    twoDaysLater.setDate(now.getDate() + 2);
+
+    const dueSoonLoans = await Loan.find({
+      status: "borrowed",
+      dueDate: { $gte: now, $lte: twoDaysLater },
+    }).sort({ dueDate: 1 });
+
+    res.json(dueSoonLoans);
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }

@@ -1,6 +1,7 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import Navbar from './components/Navbar.jsx';
 import { AuthProvider } from './context/AuthContext.jsx';
+import { SocketProvider } from './context/SocketContext.jsx';
 import BookDetailPage from './pages/BookDetailPage.jsx';
 import HomePage from './pages/HomePage.jsx';
 import LoginPage from './pages/LoginPage.jsx';
@@ -13,6 +14,7 @@ import RegisterPage from './pages/RegisterPage.jsx';
 function App() {
   return (
     <AuthProvider>
+      <SocketProvider>
       <BrowserRouter>
         <div className="relative min-h-screen bg-transparent">
           <div className="pointer-events-none absolute inset-x-0 top-0 h-72 bg-[radial-gradient(circle_at_top,_rgba(23,59,99,0.12),_transparent_62%)]" />
@@ -31,6 +33,7 @@ function App() {
           </main>
         </div>
       </BrowserRouter>
+      </SocketProvider>
     </AuthProvider>
   );
 }

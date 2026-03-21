@@ -197,3 +197,34 @@ export const markAsRead = async (notificationId) => {
   );
   return response.data;
 };
+
+export const markAllAsRead = async () => {
+  const user = JSON.parse(localStorage.getItem('user') || 'null');
+  if (!user?.id) throw new Error('Missing user id');
+
+  const response = await createRequest('notifications').patch(
+    `/notifications/user/${user.id}/read-all`,
+    {},
+    { headers: getAuthHeaders() }
+  );
+  return response.data;
+};
+
+export const deleteNotification = async (notificationId) => {
+  const response = await createRequest('notifications').delete(
+    `/notifications/${notificationId}`,
+    { headers: getAuthHeaders() }
+  );
+  return response.data;
+};
+
+export const getUnreadCount = async () => {
+  const user = JSON.parse(localStorage.getItem('user') || 'null');
+  if (!user?.id) throw new Error('Missing user id');
+
+  const response = await createRequest('notifications').get(
+    `/notifications/user/${user.id}/unread-count`,
+    { headers: getAuthHeaders() }
+  );
+  return response.data;
+};

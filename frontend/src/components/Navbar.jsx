@@ -1,5 +1,8 @@
+import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
+import { getUnreadCount } from '../services/api.js';
+import { useSocket } from '../context/SocketContext.jsx';
 
 const navLinkClass = (active) =>
   [
@@ -14,6 +17,36 @@ function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
   const canManageBooks = user?.role === 'staff' || user?.role === 'admin';
+  const [unreadCount, setUnreadCount] = useState(0);
+  const socket = useSocket();
+
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchUnread = async () => {
+      try {
+        const data = await getUnreadCount();
+        setUnreadCount(data.unreadCount || 0);
+      } catch {
+        setUnreadCount(0);
+      }
+    };
+
+    fetchUnread();
+    const interval = setInterval(fetchUnread, 30000);
+    return () => clearInterval(interval);
+  }, [user, location.pathname]);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleNew = () => {
+      setUnreadCount((c) => c + 1);
+    };
+
+    socket.on('new-notification', handleNew);
+    return () => socket.off('new-notification', handleNew);
+  }, [socket]);
 
   const handleLogout = () => {
     logout();
@@ -54,9 +87,14 @@ function Navbar() {
           {user && (
             <Link
               to="/notifications"
-              className={navLinkClass(location.pathname === '/notifications')}
+              className={`${navLinkClass(location.pathname === '/notifications')} relative`}
             >
               Notifications
+              {unreadCount > 0 && (
+                <span className="absolute -right-2 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-xs font-bold text-white">
+                  {unreadCount}
+                </span>
+              )}
             </Link>
           )}
           {user && (
