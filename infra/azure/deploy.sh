@@ -60,7 +60,7 @@ acr_build() {
   local context_path="$2"
   local dockerfile="${3:-Dockerfile}"
   echo ">>> ACR build: $image_name"
-  az acr build --registry "$ACR_NAME" --image "${image_name}:latest" --file "$dockerfile" "$context_path" --output none
+  az acr build --registry "$ACR_NAME" --image "${image_name}:latest" --file "$context_path/$dockerfile" "$context_path" --output none
 }
 
 echo ">>> Building images in ACR (cloud build — local Docker not required)..."
@@ -144,7 +144,7 @@ echo ">>> Gateway URL: $GATEWAY_ORIGIN"
 
 echo ">>> Building frontend (baked API + Socket URLs)..."
 az acr build --registry "$ACR_NAME" --image "frontend:latest" \
-  --file Dockerfile.azure \
+  --file "$REPO_ROOT/frontend/Dockerfile.azure" \
   --build-arg "VITE_API_GATEWAY_URL=${GATEWAY_ORIGIN}/api" \
   --build-arg "VITE_NOTIFICATION_SOCKET_URL=${GATEWAY_ORIGIN}" \
   "$REPO_ROOT/frontend" \
