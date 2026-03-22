@@ -1,118 +1,233 @@
 import axios from 'axios';
 
-const API_BASE = {
-  users: process.env.REACT_APP_USER_SERVICE_URL || 'http://localhost:3001/api',
-  books: process.env.REACT_APP_BOOK_SERVICE_URL || 'http://localhost:3002/api',
-  loans: process.env.REACT_APP_LOAN_SERVICE_URL || 'http://localhost:3003/api',
-  notifications: process.env.REACT_APP_NOTIFICATION_SERVICE_URL || 'http://localhost:3004/api',
-};
+const API_BASE_URL = import.meta.env.VITE_API_GATEWAY_URL || '/api';
 
-// Helper to get auth headers
 const getAuthHeaders = () => {
   const token = localStorage.getItem('token');
   return token ? { Authorization: `Bearer ${token}` } : {};
 };
 
-// Create axios instance for a given service
-const createRequest = (service) => {
-  return axios.create({
-    baseURL: API_BASE[service],
-  });
-};
-
-// ============ User Service ============
+const api = axios.create({
+  baseURL: API_BASE_URL,
+});
 
 export const login = async (email, password) => {
-  const res = await createRequest('users').post('/users/login', { email, password });
-  return res.data;
+  const response = await api.post('/users/login', { email, password });
+  return response.data;
 };
 
 export const register = async (name, email, password, role) => {
-  const res = await createRequest('users').post('/users/register', { name, email, password, role });
-  return res.data;
+  const response = await api.post('/users/register', {
+    name,
+    email,
+    password,
+    role,
+  });
+  return response.data;
+};
+
+export const getUserById = async (userId) => {
+  const response = await api.get(`/users/${userId}`);
+  return response.data;
 };
 
 export const getProfile = async () => {
-  const res = await createRequest('users').get('/users/profile', {
+  const response = await api.get('/users/profile', {
     headers: getAuthHeaders(),
   });
-  return res.data;
+  return response.data;
 };
 
-// ============ Book Service ============
+export const updateProfile = async (profileData) => {
+  const response = await api.put('/users/profile', profileData, {
+    headers: getAuthHeaders(),
+  });
+  return response.data;
+};
+
+export const deleteProfile = async () => {
+  const response = await api.delete('/users/profile', {
+    headers: getAuthHeaders(),
+  });
+  return response.data;
+};
+
+export const changePassword = async (currentPassword, newPassword, confirmNewPassword) => {
+  const response = await api.patch(
+    '/users/profile/change-password',
+    { currentPassword, newPassword, confirmNewPassword },
+    {
+      headers: getAuthHeaders(),
+    }
+  );
+  return response.data;
+};
+
+export const getStudents = async () => {
+  const response = await api.get('/users/students', {
+    headers: getAuthHeaders(),
+  });
+  return response.data;
+};
+
+export const updateStudentMembership = async (studentId, membershipStatus) => {
+  const response = await api.patch(
+    `/users/students/${studentId}/membership`,
+    { membershipStatus },
+    {
+      headers: getAuthHeaders(),
+    }
+  );
+  return response.data;
+};
+
+export const getManageMembers = async () => {
+  const response = await api.get('/users/members', {
+    headers: getAuthHeaders(),
+  });
+  return response.data;
+};
+
+export const updateManageMember = async (memberId, payload) => {
+  const response = await api.put(`/users/members/${memberId}`, payload, {
+    headers: getAuthHeaders(),
+  });
+  return response.data;
+};
+
+export const deleteManageMember = async (memberId) => {
+  const response = await api.delete(`/users/members/${memberId}`, {
+    headers: getAuthHeaders(),
+  });
+  return response.data;
+};
 
 export const getBooks = async (search = '') => {
   const params = search ? { search } : {};
-  const res = await createRequest('books').get('/books', {
+  const response = await api.get('/books', {
     params,
     headers: getAuthHeaders(),
   });
-  return res.data;
+  return response.data;
 };
 
 export const getBookById = async (id) => {
-  const res = await createRequest('books').get(`/books/${id}`, {
+  const response = await api.get(`/books/${id}`, {
     headers: getAuthHeaders(),
   });
-  return res.data;
+  return response.data;
 };
 
 export const addBook = async (bookData) => {
-  const res = await createRequest('books').post('/books', bookData, {
+  const response = await api.post('/books', bookData, {
     headers: getAuthHeaders(),
   });
-  return res.data;
+  return response.data;
 };
 
 export const updateBook = async (id, bookData) => {
-  const res = await createRequest('books').put(`/books/${id}`, bookData, {
+  const response = await api.put(`/books/${id}`, bookData, {
     headers: getAuthHeaders(),
   });
-  return res.data;
+  return response.data;
 };
 
 export const deleteBook = async (id) => {
-  const res = await createRequest('books').delete(`/books/${id}`, {
+  const response = await api.delete(`/books/${id}`, {
     headers: getAuthHeaders(),
   });
-  return res.data;
+  return response.data;
 };
 
-// ============ Loan Service ============
-
 export const borrowBook = async (bookId) => {
-  const res = await createRequest('loans').post('/loans/borrow', { bookId }, {
-    headers: getAuthHeaders(),
-  });
-  return res.data;
+  const response = await api.post(
+    '/loans/borrow',
+    { bookId },
+    {
+      headers: getAuthHeaders(),
+    }
+  );
+  return response.data;
 };
 
 export const returnBook = async (loanId) => {
-  const res = await createRequest('loans').post(`/loans/return/${loanId}`, {}, {
+  const response = await api.post(
+    `/loans/return/${loanId}`,
+    {},
+    {
+      headers: getAuthHeaders(),
+    }
+  );
+  return response.data;
+};
+
+export const getActiveLoans = async () => {
+  const response = await api.get('/loans/active', {
     headers: getAuthHeaders(),
   });
-  return res.data;
+  return response.data;
 };
 
 export const getUserLoans = async () => {
-  const res = await createRequest('loans').get('/loans/my-loans', {
+  const user = JSON.parse(localStorage.getItem('user') || 'null');
+  if (!user?.id) {
+    throw new Error('Missing user id');
+  }
+
+  const response = await api.get(`/loans/user/${user.id}`, {
     headers: getAuthHeaders(),
   });
-  return res.data;
+  return response.data;
 };
 
-// ============ Notification Service ============
-
 export const getUserNotifications = async () => {
-  const res = await createRequest('notifications').get('/notifications', {
+  const user = JSON.parse(localStorage.getItem('user') || 'null');
+  if (!user?.id) {
+    throw new Error('Missing user id');
+  }
+
+  const response = await api.get(`/notifications/user/${user.id}`, {
     headers: getAuthHeaders(),
   });
-  return res.data;
+  return response.data;
 };
 
 export const markAsRead = async (notificationId) => {
-  const res = await createRequest('notifications').put(`/notifications/${notificationId}/read`, {}, {
+  const response = await api.patch(
+    `/notifications/${notificationId}/read`,
+    {},
+    {
+      headers: getAuthHeaders(),
+    }
+  );
+  return response.data;
+};
+
+export const markAllAsRead = async () => {
+  const user = JSON.parse(localStorage.getItem('user') || 'null');
+  if (!user?.id) throw new Error('Missing user id');
+
+  const response = await api.patch(
+    `/notifications/user/${user.id}/read-all`,
+    {},
+    { headers: getAuthHeaders() }
+  );
+  return response.data;
+};
+
+export const deleteNotification = async (notificationId) => {
+  const response = await api.delete(`/notifications/${notificationId}`, {
     headers: getAuthHeaders(),
   });
-  return res.data;
+  return response.data;
+};
+
+export const getUnreadCount = async () => {
+  const user = JSON.parse(localStorage.getItem('user') || 'null');
+  if (!user?.id) throw new Error('Missing user id');
+
+  const response = await api.get(`/notifications/user/${user.id}/unread-count`, {
+    headers: getAuthHeaders(),
+  });
+  return response.data;
 };

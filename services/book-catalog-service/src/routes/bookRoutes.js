@@ -166,6 +166,8 @@ router.patch("/:id/availability", async (req, res) => {
 });
 
 // DELETE /:id - Delete a book (protected, admin only)
+// router.delete("/:id", /* auth, adminOnly, */ async (req, res) => {
+
 router.delete("/:id", auth, adminOnly, async (req, res) => {
   try {
     const book = await Book.findById(req.params.id);
