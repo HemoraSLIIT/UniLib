@@ -125,6 +125,15 @@ app.use((req, res) => {
 
 const server = http.createServer(app);
 
+// Handle WebSocket upgrades for Socket.IO
+server.on("upgrade", (req, socket, head) => {
+  if (req.url.startsWith("/socket.io")) {
+    socketIoProxy.upgrade(req, socket, head);
+  } else {
+    socket.destroy();
+  }
+});
+
 server.listen(PORT, () => {
   console.log(`API Gateway listening on port ${PORT}`);
   console.log("Routes: /api/users, /api/books, /api/loans, /api/notifications, /socket.io");
