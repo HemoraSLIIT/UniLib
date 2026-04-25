@@ -135,7 +135,7 @@ function ManageBooksPage() {
       <div className="surface-card p-8">
         <p className="page-eyebrow">Staff tools</p>
         <h1 className="title-serif mt-3 text-4xl font-semibold text-[#203245]">
-          Manage Books
+          Managing Boooks
         </h1>
         <p className="mt-3 max-w-3xl text-[#6b7280]">
           Add new titles, edit catalog metadata, and keep availability aligned with the physical collection.
