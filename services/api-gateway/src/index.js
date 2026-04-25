@@ -114,6 +114,7 @@ const socketIoProxy = createProxyMiddleware({
   target: services.notification,
   changeOrigin: true,
   ws: true,
+  logLevel: "info",
   onError: proxyError("notification-service"),
 });
 
@@ -125,14 +126,8 @@ app.use((req, res) => {
 
 const server = http.createServer(app);
 
-// Handle WebSocket upgrades for Socket.IO
-server.on("upgrade", (req, socket, head) => {
-  if (req.url.startsWith("/socket.io")) {
-    socketIoProxy.upgrade(req, socket, head);
-  } else {
-    socket.destroy();
-  }
-});
+// Attach proxy to server upgrade event for WebSocket support
+server.on("upgrade", socketIoProxy);
 
 server.listen(PORT, () => {
   console.log(`API Gateway listening on port ${PORT}`);
